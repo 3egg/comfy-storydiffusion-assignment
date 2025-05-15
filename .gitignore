@@ -31,3 +31,6 @@ build/
 
 ### VS Code ###
 .vscode/
+/comfyui/checkpoints/juggernautXL_v8Rundiffusion.safetensors
+/comfyui/storage/
+/comfyui/storage/ComfyUI/

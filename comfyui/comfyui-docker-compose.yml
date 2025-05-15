@@ -1,0 +1,28 @@
+version: '3.8'
+services:
+  comfyui:
+    image: ghcr.io/ai-dock/comfyui:v2-cuda-12.1.1-base-22.04-v0.2.7
+    environment:
+      - WEB_ENABLE_AUTH=false
+      - MODEL_DIR=/opt/ComfyUI/models
+      - WARMUP_PROMPT_FILE=/app/api.json
+    volumes:
+      - ./checkpoints/juggernautXL_v8Rundiffusion.safetensors:${MODEL_DIR}/checkpoints/juggernautXL_v8Rundiffusion.safetensors
+      - ./provisioning.sh:/opt/ai-dock/bin/provisioning.sh
+      - ./api.json:/app/api.json
+    ports:
+      - "8188:8188"  # Expose the default ComfyUI port
+      - "3008:3000"
+    command: /app/comfyui-api
+    init: true
+    entrypoint: |
+      sh -c "wget https://github.com/SaladTechnologies/comfyui-api/releases/download/1.6.1/comfyui-api -O /app/comfyui-api &&
+             chmod +x /app/comfyui-api &&
+             /app/comfyui-api"
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]

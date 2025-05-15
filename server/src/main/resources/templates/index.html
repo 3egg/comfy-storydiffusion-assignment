@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>WebSocket Example</title>
+    <script src="https://cdn.jsdelivr.net/npm/sockjs-client@1.5.0/dist/sockjs.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/stomp.js/2.3.3/stomp.min.js"></script>
+    <style>
+        #messages {
+            height: 300px;
+            overflow-y: scroll;
+            border: 1px solid #ccc;
+            padding: 10px;
+        }
+    </style>
+</head>
+<body>
+<h1>WebSocket Chat</h1>
+
+<div id="messages">
+    <form id="promptsForm">
+        <table class="prompt-table">
+            <thead>
+            <tr>
+                <th>Prompt ID</th>
+                <th>Prompt Text</th>
+                <th>Status</th>
+                <th>Image</th>
+                <th>Action</th>
+            </tr>
+            </thead>
+            <tbody id="promptsTableBody">
+            <!-- Data will be inserted here by JavaScript -->
+            </tbody>
+        </table>
+    </form>
+</div>
+
+<div>
+    <input type="text" id="message" placeholder="Type your prompt here..."/>
+    <button onclick="sendMessage()">Send</button>
+</div>
+
+<script th:inline="javascript">
+    var stompClient = null;
+
+    function connect() {
+        var socket = new SockJS('/ws');
+        stompClient = Stomp.over(socket);
+        stompClient.connect({}, function (frame) {
+            console.log('Connected: ' + frame);
+            stompClient.subscribe('/topic/messages', function (message) {
+                const generations = localStorage.getItem("generations");
+                if (generations) {
+                    let temp = JSON.parse(generations)
+                    temp.push(message.body)
+                    localStorage.setItem("generations", JSON.stringify(temp))
+                } else {
+                    localStorage.setItem("generations", JSON.stringify([message.body]))
+                }
+                renderPromptTable(JSON.parse(localStorage.getItem("generations")));
+            });
+
+            // Subscribe to scheduled messages
+            stompClient.subscribe('/topic/updated', function (message) {
+                let temp = JSON.parse(localStorage.getItem("generations") || "[]"); // Handle null case
+                const msg = JSON.parse(message.body);
+                if (msg && msg.promptId && msg.status) {
+                    temp = temp.map(item => {
+                        const prompt = typeof item === 'object' ? item : JSON.parse(item);
+                        if (prompt.promptId === msg.promptId) {
+                            return { ...prompt, status: msg.status, imageName: prompt.imageName || msg.imageName };
+                        }
+                        return prompt; // Return unchanged prompt
+                    });
+                    localStorage.setItem("generations", JSON.stringify(temp));
+                } else {
+                    console.error("Invalid message format:", msg);
+                }
+                renderPromptTable(JSON.parse(message.body));
+            });
+        });
+    }
+
+    function disconnect() {
+        if (stompClient !== null) {
+            stompClient.disconnect();
+        }
+        console.log("Disconnected");
+    }
+
+    function sendMessage() {
+        var message = document.getElementById('message').value;
+        if (message) {
+            stompClient.send("/app/chat", {}, message);
+            document.getElementById('message').value = '';
+        }
+    }
+
+
+    function deletePrompt(promptId) {
+        // Here you would typically make an API call to delete the prompt
+        console.log(`Deleting prompt ${promptId}`);
+        stompClient.send("/app/delete", {}, promptId);
+    }
+
+    function renderPromptTable(data) {
+        const tableBody = document.getElementById('promptsTableBody');
+        if (Array.isArray(data)) {
+            tableBody.innerHTML = ''; // Clear existing rows
+            data.forEach(item => {
+                try {
+                    const prompt = typeof item === 'object' ? item : JSON.parse(item);
+                    const row = document.createElement('tr');
+                    // Create image cell content
+                    const imageCell = prompt.imageName
+                        ? `<img src="${prompt.imageName}" alt="Generated image" style="max-width: 100px; max-height: 100px;">`
+                        : 'No image';
+                    const deleteButton = `<button class="delete-btn" data-prompt-id="${prompt.promptId}">Delete</button>`;
+
+                    row.innerHTML = `
+              <td>${prompt.promptId}</td>
+              <td>${prompt.promptText}</td>
+              <td class="status-cell" data-prompt-id="${prompt.promptId}">${prompt.status}</td>
+              <td class="image-cell" data-prompt-id="${prompt.promptId}">${imageCell}</td>
+              <td class="action-cell">${deleteButton}</td>
+            `;
+
+                    tableBody.appendChild(row);
+                } catch (e) {
+                    console.error('Error parsing prompt:', e);
+                }
+            });
+        } else {
+            // Case 2: Data is a single object - update existing row
+            try {
+                const prompt = typeof data === 'object' ? data : JSON.parse(data);
+
+                // Find the row with matching promptId
+                const statusCell = tableBody.querySelector(`.status-cell[data-prompt-id="${prompt.promptId}"]`);
+                const imageCell = tableBody.querySelector(`.image-cell[data-prompt-id="${prompt.promptId}"]`);
+
+                if (statusCell) {
+                    statusCell.textContent = prompt.status;
+                }
+
+                if (imageCell && prompt.imageName) {
+                    imageCell.innerHTML = `<img src="${prompt.imageName}" alt="Generated image" style="max-width: 100px; max-height: 100px;">`;
+                }
+
+                if(prompt.status=== 'deleted') {
+                    imageCell.innerHTML = `Image deleted`;
+
+                }
+            } catch (e) {
+                console.error('Error parsing prompt update:', e);
+            }
+        }
+        // Add event listeners to all delete buttons
+        document.querySelectorAll('.delete-btn').forEach(button => {
+            button.addEventListener('click', function(e) {
+                e.preventDefault();
+                const promptId = this.getAttribute('data-prompt-id');
+                deletePrompt(promptId);
+            });
+        });
+    }
+
+
+    window.onload = function () {
+        connect();
+        const generations = JSON.parse(localStorage.getItem("generations"));
+        if (generations) {
+            renderPromptTable(JSON.parse(localStorage.getItem("generations")));
+        }
+
+    };
+
+    window.onbeforeunload = function () {
+        disconnect();
+    };
+</script>
+</body>
+</html>
