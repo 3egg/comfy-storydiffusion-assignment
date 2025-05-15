@@ -8,7 +8,12 @@
 - ComfyUI Docker容器
 
 ### demo video
-![demoVideo](docs/demo.mp4)
+[下载演示视频](./docs/demo.mp4)
+<!-- 插入位于 docs 文件夹中的 demo.mp4 -->
+<video controls width="600">
+  <source src="./docs/demo.mp4" type="video/mp4">
+  您的浏览器不支持视频标签
+</video>
 
 ### 组件图
 ### 系统架构图
@@ -117,10 +122,11 @@ $ ./comfy-storydiffusion-assignment mvn clean install
 ```shell
 cd comfyui
 docker-compose comfyui-docker-compose.yml up -d
+# 启动comfyui 容器非常耗时
 ```
 在 comfyui文件夹下的 api.json是最简单的workflow，
 
-provisioning.sh 是我们安装story diffusion和复制的脚本
+provisioning.sh 是我们安装story diffusion和复制模型的脚本
 
 我们还需要下载模型文件放在我们的checkpoints目的底下
 juggernautXL_v8Rundiffusion.safetensors在huggingface上下载
