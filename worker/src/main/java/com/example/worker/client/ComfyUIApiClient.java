@@ -6,6 +6,7 @@ import com.example.worker.entity.SystemInfo;
 import feign.Headers;
 import feign.Param;
 import feign.RequestLine;
+import feign.Response;
 import org.springframework.web.bind.annotation.RequestBody;
 
 public interface ComfyUIApiClient {
@@ -21,4 +22,7 @@ public interface ComfyUIApiClient {
     @RequestLine("POST /history")
     @Headers("Content-Type: application/json")
     void delete(@Param("promptId") DeleteHistory promptId);
+
+    @RequestLine("GET /view?filename={filename}")
+    Response getImage(@Param("filename") String filename);
 }

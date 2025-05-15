@@ -5,6 +5,7 @@ import com.server.entity.Generation;
 import com.server.entity.PromptResponse;
 import com.server.repository.GenerationRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
@@ -35,5 +36,10 @@ public class WorkerService {
         generationRepository.save(generation);
         messagingTemplate.convertAndSend("/topic/updated", generation);
         return generation;
+    }
+
+    @SneakyThrows
+    public byte[] getImage(String filename) {
+        return workerClient.getImage(filename).body().asInputStream().readAllBytes();
     }
 }

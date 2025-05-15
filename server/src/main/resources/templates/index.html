@@ -5,12 +5,7 @@
     <script src="https://cdn.jsdelivr.net/npm/sockjs-client@1.5.0/dist/sockjs.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/stomp.js/2.3.3/stomp.min.js"></script>
     <style>
-        #messages {
-            height: 300px;
-            overflow-y: scroll;
-            border: 1px solid #ccc;
-            padding: 10px;
-        }
+
     </style>
 </head>
 <body>
@@ -113,7 +108,7 @@
                     const row = document.createElement('tr');
                     // Create image cell content
                     const imageCell = prompt.imageName
-                        ? `<img src="${prompt.imageName}" alt="Generated image" style="max-width: 100px; max-height: 100px;">`
+                        ? `<img src="view?filename=${prompt.imageName}" alt="Generated image" style="max-width: 100px; max-height: 100px;">`
                         : 'No image';
                     const deleteButton = `<button class="delete-btn" data-prompt-id="${prompt.promptId}">Delete</button>`;
 
@@ -143,8 +138,48 @@
                     statusCell.textContent = prompt.status;
                 }
 
-                if (imageCell && prompt.imageName) {
+                /*if (imageCell && prompt.imageName) {
                     imageCell.innerHTML = `<img src="${prompt.imageName}" alt="Generated image" style="max-width: 100px; max-height: 100px;">`;
+                }*/
+                if (imageCell && prompt.imageName) {
+                    // 创建临时占位符
+                    imageCell.innerHTML = '<div class="loading-spinner"></div>';
+
+                    // 添加时间戳避免缓存
+                    const timestamp = new Date().getTime();
+                    const imageUrl = `/view?filename=${prompt.imageName}&t=${timestamp}`;
+
+                    // 创建隐藏的图片对象
+                    const img = new Image();
+                    img.style.maxWidth = '100px';
+                    img.style.maxHeight = '100px';
+                    img.alt = 'Generated image';
+
+                    // 处理图片加载
+                    img.onload = function() {
+                        imageCell.innerHTML = '';
+                        imageCell.appendChild(img);
+                    };
+
+                    // 处理加载错误
+                    img.onerror = function() {
+                        imageCell.innerHTML = '<span class="error">图片加载失败</span>';
+                    };
+
+                    // 开始加载
+                    fetch(imageUrl)
+                        .then(response => {
+                            if (!response.ok) throw new Error('Network response was not ok');
+                            return response.blob();
+                        })
+                        .then(blob => {
+                            img.src = URL.createObjectURL(blob);
+
+                        })
+                        .catch(error => {
+                            console.error('图片加载错误:', error);
+                            imageCell.innerHTML = '<span class="error">图片加载失败</span>';
+                        });
                 }
 
                 if(prompt.status=== 'deleted') {
@@ -168,15 +203,16 @@
 
     window.onload = function () {
         connect();
-        const generations = JSON.parse(localStorage.getItem("generations"));
+        /*const generations = JSON.parse(localStorage.getItem("generations"));
         if (generations) {
             renderPromptTable(JSON.parse(localStorage.getItem("generations")));
-        }
+        }*/
 
     };
 
     window.onbeforeunload = function () {
         disconnect();
+        localStorage.removeItem("generations");
     };
 </script>
 </body>

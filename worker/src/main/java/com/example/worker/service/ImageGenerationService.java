@@ -51,4 +51,9 @@ public class ImageGenerationService {
     public void delete(String promptId) {
         comfyUIApiClient.delete(new DeleteHistory(promptId));
     }
+
+    @SneakyThrows
+    public byte[] getImage(String filename) {
+        return comfyUIApiClient.getImage(filename).body().asInputStream().readAllBytes();
+    }
 }

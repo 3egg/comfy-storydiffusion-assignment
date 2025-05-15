@@ -19,7 +19,7 @@ public class FeignConfig {
                 .logger(new Logger.JavaLogger("ComfyUI Client"))
                 .encoder(new JacksonEncoder())
                 .decoder(new JacksonDecoder())
-                .target(ComfyUIApiClient.class, "http://127.0.0.1:8000");
+                .target(ComfyUIApiClient.class, "http://127.0.0.1:8188");
     }
 
     @Bean

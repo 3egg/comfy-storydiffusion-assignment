@@ -18,6 +18,7 @@ public class ServerService {
 
     private final GenerationRepository generationRepository;
     private final SimpMessagingTemplate messagingTemplate;
+    private final WorkerService workerService;
 
     public void updateGeneration(Generation generation) {
         Generation dbGeneration = generationRepository.findFirstByPromptIdOrderByIdDesc(generation.getPromptId()).orElseThrow();
@@ -30,5 +31,9 @@ public class ServerService {
 
     public List<Generation> generations() {
         return generationRepository.findAll();
+    }
+
+    public byte[] getImage(String filename) {
+        return workerService.getImage(filename);
     }
 }

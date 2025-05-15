@@ -7,6 +7,8 @@ import com.example.worker.service.ImageGenerationService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
+import java.io.IOException;
+
 @RestController
 @RequiredArgsConstructor
 public class ComfyController {
@@ -26,5 +28,10 @@ public class ComfyController {
     @PostMapping("delete")
     public void delete(@RequestBody Generation generation) {
         imageGenerationService.delete(generation.getPromptId());
+    }
+
+    @GetMapping("view")
+    public byte[] view(@RequestParam String filename) throws IOException {
+        return imageGenerationService.getImage(filename);
     }
 }

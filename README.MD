@@ -57,6 +57,8 @@ GPU使用率
 
 <b>为了减低系统的复杂程度，这一部分并没有实现 <b>
 ```json
+http://127.0.0.1:8188/system_stats
+        
 {
     "system": {
         "os": "nt",
@@ -128,7 +130,7 @@ https://huggingface.co/RunDiffusion/Juggernaut-XL-v8/blob/main/juggernautXL_v8Ru
 - 为每个容器启动对应的WorkerService
 
     如果需要部署多个worker服务，需要修改 server.port, websocket.server.url 和 websocket.server.clientId 的内容
-要与 comfyui docker 一致
+要与 comfyui docker 一致，一个workerService 对应一个 comfyui docker
 ```properties
 spring.application.name=worker
 server.port=9090
