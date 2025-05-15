@@ -28,9 +28,9 @@ public class WorkerService {
         return generationRepository.save(generation);
     }
 
-    public Generation delete(Generation interrupted) {
-        log.info("call worker to interrupted:{}", interrupted);
-        Generation generation = generationRepository.findFirstByPromptIdOrderByIdDesc(interrupted.getPromptId()).orElseThrow();
+    public Generation delete(Generation delete) {
+        log.info("call worker to delete:{}", delete);
+        Generation generation = generationRepository.findFirstByPromptIdOrderByIdDesc(delete.getPromptId()).orElseThrow();
         generation.setStatus("deleted");
         workerClient.delete(generation);
         generationRepository.save(generation);

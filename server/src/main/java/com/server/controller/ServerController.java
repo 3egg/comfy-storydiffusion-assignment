@@ -4,7 +4,6 @@ import com.server.entity.Generation;
 import com.server.service.ServerService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -12,6 +11,7 @@ import java.util.List;
 @Slf4j
 @RestController
 @RequiredArgsConstructor
+@RequestMapping("/api/v1")
 public class ServerController {
 
 
@@ -22,7 +22,7 @@ public class ServerController {
         serverService.updateGeneration(generation);
     }
 
-    @GetMapping("/generations")
+    @GetMapping("generations")
     public List<Generation> generations() {
         return serverService.generations();
     }

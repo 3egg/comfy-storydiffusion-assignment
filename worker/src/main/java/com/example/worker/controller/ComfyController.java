@@ -11,6 +11,7 @@ import java.io.IOException;
 
 @RestController
 @RequiredArgsConstructor
+@RequestMapping("/api/v1")
 public class ComfyController {
 
     private final ImageGenerationService imageGenerationService;

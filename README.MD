@@ -152,8 +152,50 @@ websocket.server.clientId=test123456789
   
     访问http://127.0.0.1:8080 即可使用系统
   
-- 核心代码
-    - WorkerService
+
+- Thymeleaf和ServerServer交互 
+  
+  因为前端Thymeleaf和后端ServerService是通过Websocket交互，所以我省略了很多查询的代码，主要是通过 /topic/messages, /topic/updated 交互
+```java
+    @MessageMapping("/chat")
+    @SendTo("/topic/messages")
+    public Generation promptTextToImage(String message) {
+        return workerService.promptTextToImage(Generation.builder().promptText(message).status("pending").build());
+    }
+
+    @MessageMapping("/delete")
+    @SendTo("/topic/delete")
+    public Generation delete(String promptId) {
+        return workerService.delete(Generation.builder().promptId(promptId).status("deleted").build());
+    }
+
+    public Generation promptTextToImage(Generation generation) {
+        log.info("call worker to promptTextToImage:{}", generation);
+        PromptResponse promptResponse = workerClient.promptTextToImage(generation);
+        generation.setPromptId(promptResponse.promptId());
+        return generationRepository.save(generation);
+    }
+    
+    public Generation delete(Generation delete) {
+        log.info("call worker to delete:{}", delete);
+        Generation generation = generationRepository.findFirstByPromptIdOrderByIdDesc(delete.getPromptId()).orElseThrow();
+        generation.setStatus("deleted");
+        workerClient.delete(generation);
+        generationRepository.save(generation);
+        messagingTemplate.convertAndSend("/topic/updated", generation);
+        return generation;
+    }
+```
+
+
+
+
+- ServerService to WorkerService 
+
+当WorkerService提交到了Comfyui任务后，WorkService会去监听事件响应，然后callback给ServerService
+
+
+- WorkerService 核心代码
     ```java
     public class CustomWebSocketClient extends WebSocketClient {
 
