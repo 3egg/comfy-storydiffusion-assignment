@@ -1,4 +1,4 @@
-#系统设计文档
+# 系统设计文档
 ## 项目概述
 ### 本项目是一个基于ComfyUI的图像处理系统，由四个主要组件构成：
 
@@ -6,6 +6,9 @@
 - 服务器服务 (ServerService)
 - 工作服务 (WorkerService)
 - ComfyUI Docker容器
+
+### demo video
+![demoVideo](docs/demo.mp4)
 
 ### 组件图
 ### 系统架构图
